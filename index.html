@@ -15,11 +15,11 @@
 
     <div class="w3-row">
         <div class="w3-col s2 m2 l2">
-            <label for="rest_api">Zenoh REST API:</label>
+            <label for="rest_api">Zenoh REST API :</label>
         </div>
         <div class="w3-col s5 m5 l5">
             <input id="rest_api" class="w3-input w3-border w3-padding-small" type="text" required
-                value="http://demo.zenoh.io:8000/">
+                value="http://13.208.62.139:8000/">
         </div>
     </div>
     <div class="w3-row">
@@ -61,7 +61,7 @@
         </header>
         <div id="Camera" class="w3-container w3-padding">
             <img id="camera_img" class="w3-container w3-padding" style="max-width: 95%; max-height: 300px;" src="" />
-            <div id="Joystick"></div>
+            <!-- <div id="Joystick"></div> -->
         </div>
         <br />
     </div>
@@ -102,7 +102,7 @@
         </div>
     </div>
 
-    <!-- <div class="w3-card-4 w3-margin-bottom">
+    <div class="w3-card-4 w3-margin-bottom">
         <header class="w3-bar w3-green" onclick="document.getElementById('Joystick').classList.toggle('w3-hide');">
             <h5 id="joystick_label" class="w3-bar-item" style="margin: 0;">Joystick</h5>
             <h5 class="w3-bar-item w3-right" style="margin: 0;"><i class='fa fa-gamepad'></i></h5>
@@ -110,7 +110,7 @@
         <div id="Joystick" class="w3-container w3-padding" style="width: 95%; height: 200px;">
         </div>
         <br />
-    </div> -->
+    </div>
 
     <div class="w3-card-4 w3-margin-bottom">
         <header class="w3-bar w3-green" onclick="document.getElementById('Lidar').classList.toggle('w3-hide');">
@@ -227,8 +227,8 @@
         elem.innerHTML = "Drive ( " + scope + drive_topic + " )"
 
         // Update Joystick label
-        // let elem2 = document.getElementById("joystick_label");
-        // elem2.innerHTML = "Joystick ( " + scope + drive_topic + " )"
+        let elem2 = document.getElementById("joystick_label");
+        elem2.innerHTML = "Joystick ( " + scope + drive_topic + " )"
 
         // HTTP client to call the REST API
         const Http = new XMLHttpRequest();
@@ -266,8 +266,8 @@
 
             // Create a Twist message
             var twist = new Twist(
-                new Vector3(linear * linear_scale, 0.0, 0.0),
-                new Vector3(0.0, 0.0, angular * angular_scale));
+                new Vector3(linear , 0.0, 0.0),
+                new Vector3(0.0, 0.0, angular));
             console.log(twist);
             // Since it's going to DDS, encode it using a jscdr.CDRWriter
             var writer = new jscdr.CDRWriter();
@@ -287,7 +287,7 @@
             var options = {
                 zone: document.getElementById('Joystick'),
                 threshold: 0.1,
-                position: { left: 50 + '%'},
+                position: { left: 50 + '%', top: 55 + '%'},
                 mode: 'static',
                 size: 150,
                 color: '#000000',
@@ -318,9 +318,10 @@
                 self.pubTwistJoy(0, 0);
             });
         }   
-        window.onload = function () {
+
+        document.addEventListener('DOMContentLoaded', function() {
             createJoystick();
-        }
+        });
 
         // callback on keyboard's down key event
         function onkeydown(e) {
