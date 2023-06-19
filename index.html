@@ -37,7 +37,7 @@
         </div>
         <div class="w3-col s5 m5 l5">
             <input id="drive_topic_input" class="w3-input w3-border w3-padding-small w3-margin-right" type="text" required
-                value="rt/turtle1/cmd_vel">
+                value="rt/cmd_vel">
         </div>
     </div>
     <div class="w3-row">
@@ -287,7 +287,7 @@
             var options = {
                 zone: document.getElementById('Joystick'),
                 threshold: 0.1,
-                position: { left: 50 + '%', top: 55 + '%'},
+                position: { left: 70 + '%', top: 15 + '%'},
                 mode: 'static',
                 size: 150,
                 color: '#000000',
@@ -318,9 +318,47 @@
                 self.pubTwistJoy(0, 0);
             });
         }   
-
         document.addEventListener('DOMContentLoaded', function() {
             createJoystick();
+        });
+
+        function updateDualshockController() {
+            // default speed settings
+            let linear_speed = 0.0;
+            let angular_speed = 0.0;
+            let max_linear = 2.0; // m/s
+            let max_angular = 1.0; // rad/s
+            let gamepad = navigator.getGamepads();
+            let axes = gamepad[0].axes;
+
+            let j;
+            let n = axes.length;
+            // for(j=0; j < n; j++) {
+
+            //     // 軸の入力強度
+            //     var axis = axes[j];
+            //     console.log(j + ": " + axis);
+            // }
+            if (axes[1] > 0) {
+                linear_speed = -max_linear * axes[1]; // backward
+            } else if (axes[1] < 0) {
+                linear_speed = -max_linear * axes[1]; // forward
+            } else {
+                linear_speed = 0.0; // stop
+            }
+
+            if (axes[3] > 0) {
+                angular_speed = -max_angular * axes[3]; // left
+            } else if (axes[3] < 0) {
+                angular_speed = -max_angular * axes[3]; // right
+            } else {
+                angular_speed = 0.0; // stop
+            }
+            pubTwistJoy(linear_speed, angular_speed);
+        }
+        window.addEventListener("gamepadconnected", function() {
+            console.log("Gamepad connected");
+            setInterval("updateDualshockController()", 100); // Execute updateDualshockController() every 100ms
         });
 
         // callback on keyboard's down key event
