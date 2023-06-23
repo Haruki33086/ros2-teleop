@@ -282,6 +282,28 @@
             Http.setRequestHeader('Content-Type', 'application/octet-stream');
             Http.send(writer.buf.buffer);
         }
+        // Function to publish a Twist to rotation topic
+        function pubTwistRotation(linear, angular) {
+            // Create a Twist message
+            let rotation_topic_name = "rt/rotation"; // changeable topic name
+            var twist = new Twist(
+                new Vector3(linear , 0.0, 0.0),
+                new Vector3(0.0, 0.0, angular));
+            console.log(twist);
+            console.log(linear);
+            // Since it's going to DDS, encode it using a jscdr.CDRWriter
+            var writer = new jscdr.CDRWriter();
+            twist.encode(writer);
+
+            // The key expression for publication
+            var key_expr = scope + rotation_topic_name;
+            console.log("Send rotation to " + rest_api + key_expr);
+
+            // PUT it to zenoh via its REST API
+            Http.open('PUT', rest_api + key_expr, true);
+            Http.setRequestHeader('Content-Type', 'application/octet-stream');
+            Http.send(writer.buf.buffer);
+        }
         // create joystick instance
         createJoystick = function () {
             var options = {
@@ -322,17 +344,32 @@
             createJoystick();
         });
 
-        function updateDualshockController() {
+        function updateDualshockButton() {
+            let angular_speed = 0.0;
+            let gamepad = navigator.getGamepads();
+            let buttons = gamepad[0].buttons;
+
+            if (buttons[6].pressed) {
+                angular_speed = 1.5;
+            } else if (buttons[7].pressed) {
+                angular_speed = -1.5;
+            } else {
+                angular_speed = 0.0;
+            }
+            pubTwistRotation(0.0, angular_speed);
+        }
+
+        function updateDualshockJoystick() {
             // default speed settings
             let linear_speed = 0.0;
             let angular_speed = 0.0;
             let max_linear = 2.0; // m/s
-            let max_angular = 1.0; // rad/s
+            let max_angular = 1.5; // rad/s
             let gamepad = navigator.getGamepads();
             let axes = gamepad[0].axes;
 
-            let j;
-            let n = axes.length;
+            // let j;
+            // let n = axes.length;
             // for(j=0; j < n; j++) {
 
             //     // 軸の入力強度
@@ -347,10 +384,10 @@
                 linear_speed = 0.0; // stop
             }
 
-            if (axes[3] > 0) {
-                angular_speed = -max_angular * axes[3]; // left
-            } else if (axes[3] < 0) {
-                angular_speed = -max_angular * axes[3]; // right
+            if (axes[2] > 0) {
+                angular_speed = -max_angular * axes[2]; // left
+            } else if (axes[2] < 0) {
+                angular_speed = -max_angular * axes[2]; // right
             } else {
                 angular_speed = 0.0; // stop
             }
@@ -358,7 +395,8 @@
         }
         window.addEventListener("gamepadconnected", function() {
             console.log("Gamepad connected");
-            setInterval("updateDualshockController()", 100); // Execute updateDualshockController() every 100ms
+            setInterval("updateDualshockJoystick()", 100); // Execute updateDualshockJoystick() every 100ms
+            // setInterval("updateDualshockButton()", 100); // Execute updateDualshockButton() every 100ms
         });
 
         // callback on keyboard's down key event
